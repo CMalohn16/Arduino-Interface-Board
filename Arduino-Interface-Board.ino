@@ -1,3 +1,6 @@
+#include "song.h"
+
+#define MAX_SONGS 10
 
 int redPin = 10;
 int greenPin = 11;
@@ -7,38 +10,64 @@ uint8_t redValue = 0;
 uint8_t greenValue = 0;
 uint8_t blueValue = 0;
 
-void setup() {
+Song songs[MAX_SONGS];
+
+void setup() 
+{
   Serial.begin(9600);
 
   pinMode(redPin, OUTPUT);
   pinMode(greenPin, OUTPUT);
   pinMode(bluePin, OUTPUT);
+
+  //Create songs
+  //addSong();
+
 }
 
-void loop() {
+void loop() 
+{
 
   /*
   Message Format: "LED,R,G,B"
+                  "Pin,PinNumber,State(1/0)"
+                  "Tone,SongName"
   */
 
   String message = "LED,0,0,0";
 
-  if (Serial.available()) {
-    Serial.println("Serial Available");
+  if (Serial.available()) 
+  {
     message = Serial.readString();
-    if (message.startsWith("LED")) {
-      Serial.println("LED received");
-      uint8_t* rgb;
+    if (message.startsWith("LED")) 
+    {
+      message = message.substring(4);
+      uint8_t rgb[3];
       parseLED(message, rgb);
-      redValue = *(rgb);
-      greenValue = *(rgb + 1);
-      blueValue = *(rgb + 2);
+      redValue = rgb[0];
+      greenValue = rgb[1];
+      blueValue = rgb[2];
 
+      Serial.print("LEDReceived,");
       Serial.print(redValue);
-      Serial.print("  ");
+      Serial.print(",");
       Serial.print(greenValue);
-      Serial.print("  ");
+      Serial.print(",");
       Serial.println(blueValue);
+    } 
+    else if (message.startsWith("Tone")) 
+    {
+      message = message.substring(5);
+      //parseTone(message);
+    } 
+    else if (message.startsWith("Pin")) 
+    {
+      message = message.substring(4);
+      parsePin(message);
+    }
+    else 
+    {
+      Serial.println("Invalid message format");
     }
   }
 
@@ -46,37 +75,38 @@ void loop() {
   analogWrite(greenPin, greenValue);
   analogWrite(bluePin, blueValue);
 
+}
+
+void parseLED(String s, uint8_t output[3]) 
+{
+  char sArr[s.length() + 1];
+  s.toCharArray(sArr, (s.length() + 1));
+  char *rToken = strtok(sArr, ",");
+  output[0] = atoi(rToken);
+  char *gToken = strtok(NULL, ",");
+  output[1] = atoi(gToken);
+  char *bToken = strtok(NULL, ",");
+  output[2] = atoi(bToken);
 
 }
 
-void parseLED(String s, uint8_t* output) {
+void parsePin(String s) 
+{
+  char sArr[s.length() + 1];
+  s.toCharArray(sArr, (s.length() + 1));
+  char *pinToken = strtok(sArr, ",");
+  char *stateToken = strtok(NULL, ",");
 
-  int r, g, b;
-  int start = 4;
-  int end = start;
-
-  while (end < s.length() && s.charAt(end) != ',') {
-    end++;
-  }
-  r = s.substring(start, end).toInt();
-  end++;
-  start = end;
-
-  while (end < s.length() && s.charAt(end) != ',') {
-    end++;
-  }
-  g = s.substring(start, end).toInt();
-  end++;
-  start = end;
-
-  while (end < s.length() && s.charAt(end) != ',') {
-    end++;
-  }
-  b = s.substring(start, end).toInt();
-  end++;
-  start = end;
-
-  *(output) = r;
-  *(output + 1) = g;
-  *(output + 2) = b;
+  pinMode(atoi(pinToken), OUTPUT);
+  digitalWrite(atoi(pinToken), atoi(stateToken));
 }
+
+// void parseTone(String s) {
+//   //Determine what song it is
+// }
+
+// void playSong(Song song) {
+
+// }
+
+//void addSong(String name, int tempo, )
