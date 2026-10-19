@@ -1,4 +1,5 @@
 #include "song.h"
+#include "note-patterns.h"
 
 #define MAX_SONGS 10
 
@@ -6,11 +7,18 @@ int redPin = 10;
 int greenPin = 11;
 int bluePin = 12;
 
+int tonePin = 8;
+
 uint8_t redValue = 0;
 uint8_t greenValue = 0;
 uint8_t blueValue = 0;
 
-Song songs[MAX_SONGS];
+Song *songs[] = {
+  new Song("startUp", 60, STARTUP),
+  new Song("zelda", 420, ZELDA)
+};
+
+int numSongs = sizeof(songs) / sizeof(songs[0]);
 
 void setup() 
 {
@@ -20,8 +28,7 @@ void setup()
   pinMode(greenPin, OUTPUT);
   pinMode(bluePin, OUTPUT);
 
-  //Create songs
-  //addSong();
+  pinMode(tonePin, OUTPUT);
 
 }
 
@@ -58,7 +65,7 @@ void loop()
     else if (message.startsWith("Tone")) 
     {
       message = message.substring(5);
-      //parseTone(message);
+      parseTone(message);
     } 
     else if (message.startsWith("Pin")) 
     {
@@ -101,12 +108,12 @@ void parsePin(String s)
   digitalWrite(atoi(pinToken), atoi(stateToken));
 }
 
-// void parseTone(String s) {
-//   //Determine what song it is
-// }
-
-// void playSong(Song song) {
-
-// }
-
-//void addSong(String name, int tempo, )
+void parseTone(String s) {
+  for (int i = 0; i < numSongs; i++)
+  {
+    if (!s.compareTo(songs[i]->getName()))
+    {
+      songs[i]->playSong(tonePin);
+    }
+  }
+}

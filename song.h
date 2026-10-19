@@ -1,6 +1,16 @@
+#pragma once
+
 #include "note.h"
 
-typedef struct {
-    String name;
-    int tempo; //Tempo in bpm
-} Song;
+class Song {
+    public:
+        Song(String startName, int tempo, double pattern[]);
+        void playSong(int pin);
+        String getName();
+
+    private:
+        String name;
+        int length;
+        double noteDelay; //milliseconds
+        double notes[100];
+};
